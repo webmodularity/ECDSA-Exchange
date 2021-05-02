@@ -1,0 +1,29 @@
+<html>
+<body>
+  <div class="components">
+    <div class="wallet">
+      <h1> Your Wallet </h1>
+      <input type="text" id="exchange-address" class="balance-fields" placeholder="Your Address" />
+      <input type="text" id="private-key" class="balance-fields" placeholder="Private Key" />
+      <div id="balance">
+        0
+      </div>
+      <p>* Private key is required to check balance or send transfer.</p>
+      <p class="error" id="wallet-error"></p>
+    </div>
+
+    <div class="send">
+      <h1> Send Amount </h1>
+      <input type="text" id="send-amount" placeholder="Send Amount" />
+      <input type="text" id="recipient" placeholder="Recipient" />
+      <div class="button" id="transfer-amount">
+        Transfer Amount
+      </div>
+      <p class="error" id="transfer-error"></p>
+      <p class="success" id="transfer-success"></p>
+    </div>
+  </div>
+
+  <script src="./index.js"></script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+dist
+.cache
+!.gitignore
+*.lock
+node_modules
+build
+npm-debug.log
+.env
+.DS_Store
+.idea/
+*.iml
