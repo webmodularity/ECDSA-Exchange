@@ -4,7 +4,8 @@ const cors = require('cors');
 const port = 3042;
 const EC = require('elliptic').ec;
 const ec = new EC('secp256k1');
-const KEC256 = require('js-sha3').keccak256;
+const CryptoJS = require('crypto-js');
+const BS58 = require('bs58');
 const WALLET_COUNT = 3;
 const STARTING_WALLET_BALANCES = [25, 50, 75, 100, 1000];
 
@@ -23,7 +24,7 @@ app.get('/balance/:address/:privateKey', (req, res) => {
 
   if (address && privateKey) {
     const key = ec.keyFromPrivate(privateKey);
-    const walletId = getWalletIdFromPublicKey(getPublicHexFromKey(key));
+    const walletId = getBtcAddressFromEcdsaKey(key);
     if (walletId === address && walletId in balances) {
       // SUCCESS
       balance = balances[walletId];
@@ -45,7 +46,7 @@ app.post('/send', (req, res) => {
 
   if (sender && recipient && privateKey && amount > 0) {
     const key = ec.keyFromPrivate(privateKey);
-    const walletId = getWalletIdFromPublicKey(getPublicHexFromKey(key));
+    const walletId = getBtcAddressFromEcdsaKey(key);
     if (walletId === sender && walletId in balances && recipient in balances && (balances[walletId] - amount) >= 0) {
       // SUCCESS
       balances[sender] -= amount;
@@ -72,8 +73,8 @@ app.listen(port, () => {
   for (let i = 0; i < WALLET_COUNT; i++) {
     wallets[i] = {};
     const key = ec.genKeyPair();
-    wallets[i].privateKey = key.getPrivate().toString(16);
-    wallets[i].id = getWalletIdFromPublicKey(getPublicHexFromKey(key));
+    wallets[i].privateKey = key.getPrivate().toString('hex');
+    wallets[i].id = getBtcAddressFromEcdsaKey(key);
     // Assign random starting balance
     wallets[i].balance = STARTING_WALLET_BALANCES[Math.floor(Math.random() * STARTING_WALLET_BALANCES.length)];
     // Add wallet id and balance to global balances object
@@ -82,10 +83,29 @@ app.listen(port, () => {
   console.log(wallets);
 });
 
-function getWalletIdFromPublicKey(publicKey) {
-  return '0x' + KEC256(publicKey).substr(24, 40);
+// Helper Functions
+
+function getBtcAddressFromEcdsaKey(key) {
+  // Code from https://github.com/cdgmachado0/Exchange/blob/main/server/keys.js
+  const compressedPublicKey = xPrefix(key.getPublic().y.toString('hex')) + key.getPublic().x.toString('hex');
+  const firstSHA = CryptoJS.SHA256(CryptoJS.enc.Hex.parse(compressedPublicKey));
+  const ripemd = CryptoJS.RIPEMD160(firstSHA).toString();
+  const networkBytes = '00' + ripemd;
+  const secondSHA = CryptoJS.SHA256(CryptoJS.enc.Hex.parse(networkBytes));
+  const thirdSHA = CryptoJS.SHA256(secondSHA).toString();
+  const checksum = thirdSHA.substring(0, 8);
+  const binaryAddress = networkBytes + checksum;
+
+  const bytes = Buffer.from(binaryAddress, 'hex');
+  return BS58.encode(bytes);
 }
 
-function getPublicHexFromKey(key) {
-  return key.getPublic().encode('hex').substr(2);
+function hexIsEven(hex)
+{
+  const even = ['0', '2', '4', '6', '8', 'A', 'C', 'E'];
+  return even.includes(hex.charAt(hex.length - 1));
+}
+
+function xPrefix(yHex) {
+  return hexIsEven(yHex) ? '02' : '03';
 }
