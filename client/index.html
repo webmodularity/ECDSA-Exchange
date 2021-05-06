@@ -4,11 +4,11 @@
     <div class="wallet">
       <h1> Your Wallet </h1>
       <input type="text" id="exchange-address" class="balance-fields" placeholder="Your Address" />
-      <input type="text" id="private-key" class="balance-fields" placeholder="Private Key" />
+      <input type="text" id="der-signature" class="balance-fields" placeholder="DER Signature" />
       <div id="balance">
         0
       </div>
-      <p>* Private key is required to check balance or send transfer.</p>
+      <p>* DER Signature should be in hex string format and generated using<br /> the server/generate-signature tool. Signature is required to send.</p>
       <p class="error" id="wallet-error"></p>
     </div>
 

@@ -8,10 +8,10 @@
   },
   "dependencies": {
     "bs58": "^4.0.1",
-    "bs58check": "^2.1.2",
     "cors": "^2.8.5",
     "crypto-js": "^4.0.0",
     "elliptic": "^6.5.4",
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "js-sha3": "^0.8.0"
   }
 }

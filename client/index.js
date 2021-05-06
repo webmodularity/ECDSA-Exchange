@@ -2,25 +2,21 @@ import "./index.scss";
 
 const server = "http://localhost:3042";
 
-document.querySelectorAll(".balance-fields").forEach((el) => {
-  el.addEventListener('input', () => {
-    const address = document.getElementById("exchange-address").value;
-    const privateKey = document.getElementById("private-key").value;
-    document.getElementById("wallet-error").innerHTML = '';
+document.getElementById("exchange-address").addEventListener('input', () => {
+  const address = document.getElementById("exchange-address").value;
 
-    if (!address || !privateKey) {
-      document.getElementById("balance").innerHTML = ' ' + 0;
-      return;
+  if (!address) {
+    document.getElementById("balance").innerHTML = ' ' + 0;
+    return;
+  }
+
+  fetch(`${server}/balance/${address}`).then((response) => {
+    return response.json();
+  }).then(({ balance, error }) => {
+    document.getElementById("balance").innerHTML = ' ' + balance;
+    if (error) {
+      document.getElementById("wallet-error").innerHTML = error;
     }
-
-    fetch(`${server}/balance/${address}/${privateKey}`).then((response) => {
-      return response.json();
-    }).then(({ balance, error }) => {
-      document.getElementById("balance").innerHTML = ' ' + balance;
-      if (error) {
-        document.getElementById("wallet-error").innerHTML = error;
-      }
-    });
   });
 });
 
@@ -28,12 +24,13 @@ document.getElementById("transfer-amount").addEventListener('click', () => {
   const sender = document.getElementById("exchange-address").value;
   const amount = document.getElementById("send-amount").value;
   const recipient = document.getElementById("recipient").value;
-  const privateKey = document.getElementById("private-key").value;
+  // Make sure we eliminate any whitespace in signature input
+  const signature = document.getElementById("der-signature").value.replace(/\s+/g, '');
   document.getElementById("transfer-success").innerHTML = '';
   document.getElementById("transfer-error").innerHTML = '';
 
   const body = JSON.stringify({
-    sender, amount, recipient, privateKey
+    sender, amount, recipient, signature
   });
 
   const request = new Request(`${server}/send`, { method: 'POST', body });
